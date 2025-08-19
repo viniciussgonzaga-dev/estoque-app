@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📦 Estoque Fácil</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f7f9fc;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+    }
+    p.subtitle {
+      text-align: center;
+      color: #7f8c8d;
+      margin-bottom: 30px;
+      font-size: 0.95rem;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border-radius: 8px;
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+    }
+    .section h2 {
+      font-size: 1.3rem;
+      color: #2980b9;
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin: 8px 0 5px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border 0.3s;
+    }
+    input[type="text"]:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 10px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    button.cadastrar { background-color: #27ae60; }
+    button.cadastrar:hover { background-color: #219653; }
+    button.excluir { background-color: #e74c3c; }
+    button.excluir:hover { background-color: #c0392b; }
+    button.relatorio {
+      background-color: #9b59b6;
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1rem;
+    }
+    button.relatorio:hover { background-color: #8e44ad; }
+
+    .listagem {
+      margin-top: 20px;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      padding: 10px;
+      background: #fdfdfd;
+    }
+    .produto-item {
+      padding: 8px;
+      border-bottom: 1px dashed #ddd;
+      font-size: 0.95rem;
+    }
+    .produto-item:last-child { border-bottom: none; }
+    .produto-item strong { color: #2c3e50; }
+    .produto-item span { color: #7f8c8d; display: block; }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      color: #95a5a6;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      .container { padding: 15px; }
+      h1 { font-size: 1.5rem; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>📦 Estoque Fácil</h1>
+    <p class="subtitle">Controle seu estoque em tempo real com todos os dispositivos</p>
+
+    <!-- CADASTRAR PRODUTO -->
+    <div class="section">
+      <h2>➕ Cadastrar Produto</h2>
+      <label>Número do Produto</label>
+      <input type="text" id="numero-cadastro" placeholder="Ex: 1001">
+
+      <label>Descrição do Produto</label>
+      <input type="text" id="descricao" placeholder="Ex: Camiseta G - Preta">
+
+      <label>Localização no Estoque</label>
+      <input type="text" id="localizacao" placeholder="Ex: Prateleira A5">
+
+      <button class="cadastrar" onclick="cadastrarProduto()">Cadastrar Produto</button>
+    </div>
+
+    <!-- CONSULTAR PRODUTO -->
+    <div class="section">
+      <h2>🔍 Consultar Produto</h2>
+      <label>Número do Produto</label>
+      <input type="text" id="numero-consulta" placeholder="Digite o número">
+
+      <button onclick="consultarProduto()">Consultar</button>
+    </div>
+
+    <!-- EXCLUIR PRODUTO -->
+    <div class="section">
+      <h2>🗑️ Remover Produto (vendido)</h2>
+      <label>Número do Produto para Excluir</label>
+      <input type="text" id="numero-excluir" placeholder="Digite o número a ser removido">
+
+      <button class="excluir" onclick="excluirProduto()">Excluir Produto</button>
+    </div>
+
+    <!-- GERAR RELATÓRIO -->
+    <div class="section">
+      <h2>📄 Relatório de Estoque</h2>
+      <button class="relatorio" onclick="gerarRelatorio()">Gerar Relatório (CSV)</button>
+    </div>
+
+    <!-- LISTA DE PRODUTOS (visualização rápida) -->
+    <div class="section">
+      <h2>📋 Produtos Cadastrados</h2>
+      <div class="listagem" id="lista-produtos">
+        <p>Carregando produtos...</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      © Estoque Fácil - Funciona em qualquer celular | Atualizado em tempo real
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    // 🔥 SUBSTITUA com seu firebaseConfig do Firebase Console
+    const firebaseConfig = {
+  apiKey: "AIzaSyAacTn6y2zUFD9ciANLongQ9mtyjyS854A",
+  authDomain: "meu-estoque-de608.firebaseapp.com",
+  databaseURL: "https://meu-estoque-de608-default-rtdb.firebaseio.com",
+  projectId: "meu-estoque-de608",
+  storageBucket: "meu-estoque-de608.firebasestorage.app",
+  messagingSenderId: "983025707752",
+  appId: "1:983025707752:web:084618d7e0070c8600775d",
+  measurementId: "G-CZNC73PJ84"
+};
+
+    // Importar Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    // Inicializar Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase();
+    const produtosRef = ref(db, 'produtos');
+
+    let dadosEstoque = {};
+
+    // Carregar dados ao iniciar
+    function carregarDados() {
+      get(produtosRef).then(snapshot => {
+        dadosEstoque = snapshot.exists() ? snapshot.val() : {};
+        atualizarLista();
+      }).catch(error => {
+        console.error("Erro ao carregar dados:", error);
+        alert("Erro ao conectar ao banco de dados.");
+      });
+    }
+
+    // Cadastrar Produto
+    window.cadastrarProduto = function() {
+      const numero = document.getElementById("numero-cadastro").value.trim();
+      const descricao = document.getElementById("descricao").value.trim();
+      const localizacao = document.getElementById("localizacao").value.trim();
+
+      if (!numero || !descricao || !localizacao) {
+        alert("⚠️ Preencha todos os campos!");
+        return;
+      }
+
+      if (dadosEstoque[numero]) {
+        const prod = dadosEstoque[numero];
+        alert(`❌ Produto já cadastrado!\n\nNúmero: ${numero}\nDescrição: ${prod.descricao}\nLocalização: ${prod.localizacao}`);
+        return;
+      }
+
+      // Salvar no Firebase
+      set(ref(db, 'produtos/' + numero), {
+        descricao: descricao,
+        localizacao: localizacao
+      }).then(() => {
+        alert(`✅ Produto ${numero} cadastrado com sucesso!`);
+        document.getElementById("numero-cadastro").value = "";
+        document.getElementById("descricao").value = "";
+        document.getElementById("localizacao").value = "";
+        carregarDados(); // Atualiza lista
+      }).catch(error => {
+        alert("Erro ao salvar: " + error.message);
+      });
+    };
+
+    // Consultar Produto
+    window.consultarProduto = function() {
+      const numero = document.getElementById("numero-consulta").value.trim();
+      if (!numero) {
+        alert("Digite o número do produto.");
+        return;
+      }
+
+      get(ref(db, 'produtos/' + numero)).then(snapshot => {
+        if (snapshot.exists()) {
+          const prod = snapshot.val();
+          alert(`📦 Produto encontrado!\n\nNúmero: ${numero}\nDescrição: ${prod.descricao}\nLocalização: ${prod.localizacao}`);
+        } else {
+          alert(`🔍 Produto ${numero} ainda não chegou na loja.`);
+        }
+        document.getElementById("numero-consulta").value = "";
+      }).catch(error => {
+        alert("Erro na consulta: " + error.message);
+      });
+    };
+
+    // Excluir Produto
+    window.excluirProduto = function() {
+      const numero = document.getElementById("numero-excluir").value.trim();
+      if (!numero) {
+        alert("Digite o número do produto para excluir.");
+        return;
+      }
+
+      if (!dadosEstoque[numero]) {
+        alert(`❌ Produto ${numero} não encontrado.`);
+        return;
+      }
+
+      const prod = dadosEstoque[numero];
+      const confirmado = confirm(`Tem certeza que deseja excluir?\n\nNúmero: ${numero}\nDescrição: ${prod.descricao}`);
+      
+      if (!confirmado) return;
+
+      remove(ref(db, 'produtos/' + numero)).then(() => {
+        alert(`🗑️ Produto ${numero} removido com sucesso!`);
+        document.getElementById("numero-excluir").value = "";
+        carregarDados();
+      }).catch(error => {
+        alert("Erro ao excluir: " + error.message);
+      });
+    };
+
+    // Gerar Relatório CSV
+    window.gerarRelatorio = function() {
+      get(produtosRef).then(snapshot => {
+        const dados = snapshot.exists() ? snapshot.val() : {};
+        let csv = "Número do Produto,Descrição,Localização\n";
+
+        Object.keys(dados).sort().forEach(numero => {
+          const prod = dados[numero];
+          const linha = `"${numero}","${prod.descricao}","${prod.localizacao}"`;
+          csv += linha + "\n";
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "relatorio_estoque.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }).catch(error => {
+        alert("Erro ao gerar relatório: " + error.message);
+      });
+    };
+
+    // Atualizar lista visual
+    function atualizarLista() {
+      const lista = document.getElementById("lista-produtos");
+      lista.innerHTML = "";
+
+      const chaves = Object.keys(dadosEstoque).sort();
+      if (chaves.length === 0) {
+        lista.innerHTML = "<p>Nenhum produto cadastrado.</p>";
+        return;
+      }
+
+      chaves.forEach(numero => {
+        const prod = dadosEstoque[numero];
+        const div = document.createElement("div");
+        div.className = "produto-item";
+        div.innerHTML = `
+          <strong>${numero}</strong> - ${prod.descricao}
+          <span>📍 ${prod.localizacao}</span>
+        `;
+        lista.appendChild(div);
+      });
+    }
+
+    // Carregar dados ao iniciar
+    carregarDados();
+    // Atualizar a cada 10 segundos (para sincronizar com outros dispositivos)
+    setInterval(carregarDados, 10000);
+  </script>
+
+</body>
+</html>
